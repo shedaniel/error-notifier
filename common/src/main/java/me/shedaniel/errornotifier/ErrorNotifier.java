@@ -20,7 +20,7 @@ public class ErrorNotifier {
                 System.err.printf("- %s%n", errorComponent.message().getMessage());
                 
                 if (errorComponent.url() != null) {
-                    System.err.printf("  - %s%n", errorComponent.url());
+                    System.err.printf("%s%n", errorComponent.url());
                 }
             });
             
@@ -30,13 +30,18 @@ public class ErrorNotifier {
             }
             
             try {
-                Class<?> rendererClass = Class.forName("me.shedaniel.errornotifier.launch.EarlyWindowRenderer");
-                Object renderer = rendererClass.cast(Class.forName("me.shedaniel.errornotifier.client.ErrorRenderer")
-                        .getDeclaredConstructor(List.class)
-                        .newInstance(errorComponents));
-                Class.forName("me.shedaniel.errornotifier.launch.EarlyWindow")
-                        .getDeclaredMethod("start", String[].class, Path.class, String.class, rendererClass)
-                        .invoke(null, args, gameDir, mcVersion, renderer);
+                if (isMac()) {
+                    System.out.println("Opening error notifier on Mac...");
+                    ForkingUtils.openErrors("Minecraft* " + mcVersion, errorComponents);
+                } else {
+                    Class<?> rendererClass = Class.forName("me.shedaniel.errornotifier.launch.EarlyWindowRenderer");
+                    Object renderer = rendererClass.cast(Class.forName("me.shedaniel.errornotifier.client.ErrorRenderer")
+                            .getDeclaredConstructor(List.class)
+                            .newInstance(errorComponents));
+                    Class.forName("me.shedaniel.errornotifier.launch.EarlyWindow")
+                            .getDeclaredMethod("start", String[].class, Path.class, String.class, rendererClass)
+                            .invoke(null, args, gameDir, mcVersion, renderer);
+                }
                 System.exit(1);
             } catch (Throwable e) {
                 throw new RuntimeException(e);

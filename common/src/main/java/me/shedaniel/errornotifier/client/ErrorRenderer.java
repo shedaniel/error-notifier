@@ -1,6 +1,6 @@
 package me.shedaniel.errornotifier.client;
 
-import me.shedaniel.errornotifier.URLUtils;
+import me.shedaniel.errornotifier.ForkingUtils;
 import me.shedaniel.errornotifier.api.ErrorProvider;
 import me.shedaniel.errornotifier.launch.EarlyGraphics;
 import me.shedaniel.errornotifier.launch.EarlyWindowRenderer;
@@ -160,7 +160,7 @@ public class ErrorRenderer implements EarlyWindowRenderer {
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
             if (contains && button == 0) {
                 try {
-                    URLUtils.openForked(link);
+                    ForkingUtils.openUrl(link);
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 }

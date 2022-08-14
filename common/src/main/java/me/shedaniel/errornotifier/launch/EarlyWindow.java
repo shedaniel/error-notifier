@@ -1,9 +1,7 @@
 package me.shedaniel.errornotifier.launch;
 
-import ca.weblite.objc.NSObject;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.sun.jna.Pointer;
 import me.shedaniel.errornotifier.ErrorNotifier;
 import me.shedaniel.errornotifier.launch.render.EarlyRenderingStates;
 import me.shedaniel.errornotifier.launch.render.math.Matrix4f;
@@ -13,7 +11,6 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWNativeCocoa;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
@@ -23,9 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Queue;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
@@ -48,8 +43,6 @@ public class EarlyWindow {
     public static Lock lock = new ReentrantLock();
     public static boolean hasRender = true;
     public static EarlyTimer timer = new EarlyTimer(20.0F, 0L);
-    private static final Queue<Runnable> tasks = new ConcurrentLinkedDeque<>();
-    public static Executor executor = tasks::add;
     
     private static void initDimensions(@Nullable Boolean fullscreen, String[] args) {
         EarlyWindow.width = 854;
@@ -149,7 +142,7 @@ public class EarlyWindow {
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2);
         GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE);
         GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
-        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
+        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_TRUE);
         initDimensions(defaultFullscreen, args);
         if (fullscreen) {
             GLFWVidMode vidMode = GLFW.glfwGetVideoMode(monitor);
@@ -180,10 +173,10 @@ public class EarlyWindow {
         }
         
         GLFW.glfwMakeContextCurrent(window);
+        GL.createCapabilities();
         setMode(monitor);
         refreshFramebufferSize();
         scale = calculateScale(defaultGuiScale, false);
-        GLFW.glfwSwapInterval(0);
         
         GLFW.glfwSetFramebufferSizeCallback(window, EarlyWindow::framebufferResize);
         GLFW.glfwSetWindowPosCallback(window, EarlyWindow::windowMove);
@@ -203,36 +196,27 @@ public class EarlyWindow {
             }
         });
         
-        GLFW.glfwShowWindow(window);
-        GLFW.glfwMakeContextCurrent(0L);
+        GL11.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         
-            GLFW.glfwMakeContextCurrent(window);
-            GL.createCapabilities();
-            GL11.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-            
-            while (running) {
-                try {
-                    Runnable task;
-                    while ((task = tasks.poll()) != null) {
-                        task.run();
-                    }
-                    if (hasRender) {
-                        renderWindow(renderer);
-                    }
-                    hasRendered = true;
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace();
+        while (running) {
+            try {
+                if (hasRender) {
+                    renderWindow(renderer);
                 }
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException ignored) {
-                }
+                hasRendered = true;
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
             }
-            GLFW.glfwMakeContextCurrent(0L);
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException ignored) {
+            }
+        }
     }
     
     private static void renderWindow(EarlyWindowRenderer renderer) {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+        if (ErrorNotifier.isMac()) GL11.glGetError();
         GL11.glViewport(0, 0, width, height);
         EarlyRenderingStates.projectionMatrix.setIdentity();
         EarlyRenderingStates.projectionMatrix = Matrix4f.orthographic(0.0F, (float) (width / scale), 0.0F, (float) (height / scale), 1000.0F, 3000.0F);
@@ -241,8 +225,8 @@ public class EarlyWindow {
         
         render(renderer);
         
-        GLFW.glfwSwapBuffers(window);
         GLFW.glfwPollEvents();
+        GLFW.glfwSwapBuffers(window);
     }
     
     private static void render(EarlyWindowRenderer renderer) {
@@ -306,28 +290,6 @@ public class EarlyWindow {
     }
     
     public static void updateFBSize(IntConsumer width, IntConsumer height) {
-    }
-    
-    public static void setRender(@Nullable Double scale, boolean render, boolean wait) {
-        EarlyWindow.tasks.clear();
-        CompletableFuture<Void> async = CompletableFuture.runAsync(() -> {
-            GLFW.glfwMakeContextCurrent(render ? EarlyWindow.window : 0L);
-            if (!render && GLFW.glfwGetCurrentContext() != 0L) {
-                throw new IllegalStateException("Failed to release GLFW context");
-            }
-            EarlyWindow.LOGGER.info("Set render to " + render);
-            if (render) {
-                GL.createCapabilities();
-                refreshFramebufferSize();
-                if (scale != null && scale != 0) {
-                    EarlyWindow.scale = scale;
-                }
-            }
-            EarlyWindow.hasRender = render;
-        }, EarlyWindow.executor);
-        if (wait) {
-            async.join();
-        }
     }
     
     public static void framebufferResize(long win, int w, int h) {
