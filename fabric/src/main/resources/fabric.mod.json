@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "error_notifier",
+  "version": "${version}",
+  "name": "Error Notifier",
+  "authors": [
+    "shedaniel"
+  ],
+  "environment": "*",
+  "entrypoints": {
+    "preLaunch": [
+        "me.shedaniel.errornotifier.fabric.ErrorNotifierFabric"
+    ]
+  },
+  "depends": {
+    "java": ">=17",
+    "fabricloader": ">=0.13"
+  }
+}

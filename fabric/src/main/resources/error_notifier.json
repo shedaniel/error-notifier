@@ -1,0 +1,18 @@
+{
+    "schemaVersion": 1,
+    "checks": [
+        {
+            "type": "depends",
+            "modId": "fabric",
+            "modName": "Fabric API",
+            "versions": ">=1.0.0 <1.1.0",
+            "url": "https://www.curseforge.com/minecraft/mc-mods/fabric-api/files/all/"
+        },
+        {
+            "type": "breaks",
+            "modId": "java",
+            "modName": "Java",
+            "versions": "17"
+        }
+    ]
+}
