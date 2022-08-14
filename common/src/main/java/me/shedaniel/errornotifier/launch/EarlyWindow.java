@@ -47,7 +47,6 @@ public class EarlyWindow {
     public static boolean hasRendered = false;
     public static Lock lock = new ReentrantLock();
     public static boolean hasRender = true;
-    public static Thread thread;
     public static EarlyTimer timer = new EarlyTimer(20.0F, 0L);
     private static final Queue<Runnable> tasks = new ConcurrentLinkedDeque<>();
     public static Executor executor = tasks::add;
@@ -120,7 +119,7 @@ public class EarlyWindow {
         return null;
     }
     
-    public static void start(String[] args, Path gameDir, @Nullable String mcVersion, EarlyWindowRenderer renderer, boolean join, boolean joinUntilClose) {
+    public static void start(String[] args, Path gameDir, @Nullable String mcVersion, EarlyWindowRenderer renderer) {
         List<String> list = Lists.newArrayList();
         GLFWErrorCallback errorCallback = GLFW.glfwSetErrorCallback((i, l) -> {
             list.add(String.format("GLFW error during init: [0x%X]%s", i, l));
@@ -206,7 +205,6 @@ public class EarlyWindow {
         GLFW.glfwShowWindow(window);
         GLFW.glfwMakeContextCurrent(0L);
         
-        thread = new Thread(() -> {
             GLFW.glfwMakeContextCurrent(window);
             GL.createCapabilities();
             GL11.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -230,36 +228,6 @@ public class EarlyWindow {
                 }
             }
             GLFW.glfwMakeContextCurrent(0L);
-        }, "Early Visualization");
-        thread.setDaemon(true);
-        thread.start();
-        if (joinUntilClose) {
-            joinUntilClose();
-        } else if (join) {
-            join();
-        }
-    }
-    
-    public static void join() {
-        if (hasRendered) return;
-        CompletableFuture.runAsync(() -> {
-            while (!hasRendered) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException ignored) {
-                }
-            }
-        }).join();
-    }
-    
-    public static void joinUntilClose() {
-        while (true) {
-            try {
-                Thread.sleep(1000000000L);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
     
     private static void renderWindow(EarlyWindowRenderer renderer) {

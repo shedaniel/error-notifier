@@ -35,8 +35,8 @@ public class ErrorNotifier {
                         .getDeclaredConstructor(List.class)
                         .newInstance(errorComponents));
                 Class.forName("me.shedaniel.errornotifier.launch.EarlyWindow")
-                        .getDeclaredMethod("start", String[].class, Path.class, String.class, rendererClass, Boolean.TYPE, Boolean.TYPE)
-                        .invoke(null, args, gameDir, mcVersion, renderer, true, true);
+                        .getDeclaredMethod("start", String[].class, Path.class, String.class, rendererClass)
+                        .invoke(null, args, gameDir, mcVersion, renderer);
                 System.exit(1);
             } catch (Throwable e) {
                 throw new RuntimeException(e);
