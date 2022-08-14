@@ -18,7 +18,7 @@ public class ErrorRenderer implements EarlyWindowRenderer {
     
     @Override
     public void render(EarlyGraphics graphics, double mouseX, double mouseY, float tickDelta) {
-        listWidget = new StringEntryListWidget(graphics.getScaledWidth(), graphics.getScaledHeight(), 32, graphics.getScaledHeight() - 32);
+        listWidget = new StringEntryListWidget(graphics.getScaledWidth(), graphics.getScaledHeight(), 32, graphics.getScaledHeight());
         listWidget.addItem(new EmptyItem());
         listWidget.addItem(new TextItem("Errors:", 0xFFFF5555));
         for (ErrorProvider.ErrorComponent error : errors) {
