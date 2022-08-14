@@ -15,7 +15,7 @@ jobs:
       - name: Upload Mod
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: build publish --stacktrace
+          arguments: build publish --stacktrace --rerun-tasks
         env:
           BRANCH_NAME: ${{ github.ref }}
           MAVEN_PASS: ${{ secrets.MAVEN_PASS }}
