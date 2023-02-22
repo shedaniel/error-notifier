@@ -1,5 +1,6 @@
 package me.shedaniel.errornotifier.launch;
 
+import me.shedaniel.errornotifier.ErrorNotifier;
 import me.shedaniel.errornotifier.ErrorNotifierPlatform;
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.opengl.GL20;
@@ -43,7 +44,7 @@ public class EarlyShader {
         GL20.glCompileShader(handle);
         
         String infoLog = GL20.glGetShaderInfoLog(handle, 512);
-        System.out.println("Shader " + shaderType + " compilation status: " + infoLog);
+        ErrorNotifier.LOGGER.info("Shader " + shaderType + " compilation status: " + infoLog);
     }
     
     int getHandle() {

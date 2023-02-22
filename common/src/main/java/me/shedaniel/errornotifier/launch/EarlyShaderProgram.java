@@ -1,5 +1,6 @@
 package me.shedaniel.errornotifier.launch;
 
+import me.shedaniel.errornotifier.ErrorNotifier;
 import org.lwjgl.opengl.GL20;
 
 import java.util.HashMap;
@@ -36,7 +37,7 @@ public class EarlyShaderProgram {
         GL20.glLinkProgram(handle);
         
         String infoLog = GL20.glGetProgramInfoLog(handle, 512);
-        System.out.println("Shader linkage status: " + infoLog);
+        ErrorNotifier.LOGGER.info("Shader linkage status: " + infoLog);
     }
     
     void use() {

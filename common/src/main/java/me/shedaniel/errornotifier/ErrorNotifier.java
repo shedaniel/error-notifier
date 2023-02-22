@@ -1,6 +1,9 @@
 package me.shedaniel.errornotifier;
 
 import me.shedaniel.errornotifier.api.ErrorProvider;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -10,17 +13,19 @@ import java.util.ServiceLoader;
 
 public class ErrorNotifier {
     public static final String MOD_ID = "error_notifier";
-    
+
+    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+
     public static void init(String[] args, Path gameDir, @Nullable String mcVersion, boolean client) {
         List<ErrorProvider.ErrorComponent> errorComponents = ServiceLoader.load(ErrorProvider.class).stream()
                 .flatMap(provider -> provider.get().errors().stream()).toList();
         if (!errorComponents.isEmpty()) {
-            System.err.printf("Found %d error(s) during startup:%n", errorComponents.size());
+            LOGGER.printf(Level.ERROR, "Found %d error(s) during startup:", errorComponents.size());
             errorComponents.forEach(errorComponent -> {
-                System.err.printf("- %s%n", errorComponent.message().getMessage());
+                LOGGER.printf(Level.ERROR, "- %s", errorComponent.message().getMessage());
                 
                 if (errorComponent.url() != null) {
-                    System.err.printf("%s%n", errorComponent.url());
+                    LOGGER.printf(Level.ERROR, "%s", errorComponent.url());
                 }
             });
             
@@ -31,7 +36,7 @@ public class ErrorNotifier {
             
             try {
                 if (isMac()) {
-                    System.out.println("Opening error notifier on Mac...");
+                    LOGGER.info("Opening error notifier on Mac...");
                     ForkingUtils.openErrors("Minecraft* " + mcVersion, errorComponents);
                 } else {
                     Class<?> rendererClass = Class.forName("me.shedaniel.errornotifier.launch.EarlyWindowRenderer");
