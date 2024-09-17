@@ -14,6 +14,24 @@ import java.util.Map;
 
 public class ErrorNotifierPlatformImpl {
     public static ResourceResolver getResourceResolver() {
+        ResourceResolver resolver = getResourceResolver0();
+        return url -> {
+            try {
+                return resolver.resolve(url);
+            } catch (RuntimeException e) {
+                if (url.contains("options_background")) {
+                    try {
+                        return resolver.resolve("assets/minecraft/textures/block/dirt.png");
+                    } catch (RuntimeException ignored) {
+                    }
+                }
+                
+                throw e;
+            }
+        };
+    }
+    
+    public static ResourceResolver getResourceResolver0() {
         return url -> {
             Path path = FabricLoader.getInstance().getModContainer("minecraft").get().findPath(url).orElse(null);
             if (path != null && Files.exists(path)) {
